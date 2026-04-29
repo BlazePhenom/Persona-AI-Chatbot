@@ -42,6 +42,21 @@ const personaSummary = document.getElementById("personaSummary");
 
 const personaButtons = Array.from(document.querySelectorAll(".persona-btn"));
 
+const apiBase = (() => {
+  const isFileProtocol = window.location.protocol === "file:";
+  const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+  const isPortMismatch = isLocalhost && window.location.port && window.location.port !== "3000";
+
+  if (isFileProtocol || isPortMismatch) {
+    return "http://localhost:3000";
+  }
+
+  return window.location.origin;
+})();
+
+const apiUrl = `${apiBase}/api/chat`;
+const isLocalApi = apiBase.includes("localhost:3000");
+
 function setActivePersona(personaKey) {
   activePersona = personaKey;
   personaButtons.forEach((btn) => {
@@ -111,7 +126,7 @@ async function sendMessage(text) {
   addTypingIndicator();
 
   try {
-    const response = await fetch("/api/chat", {
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ persona: activePersona, messages })
@@ -129,6 +144,12 @@ async function sendMessage(text) {
 
     if (!response.ok) {
       const detail = data.details ? `\n\n${data.details}` : "";
+      if (response.status === 404) {
+        const hint = isLocalApi
+          ? "Start the Express server with `npm start` and open http://localhost:3000."
+          : "Confirm the backend is deployed and the /api/chat route exists.";
+        throw new Error(`API endpoint not found. ${hint}`);
+      }
       const message = data.error
         ? `${data.error}${detail}`
         : "The request failed. Please try again.";
