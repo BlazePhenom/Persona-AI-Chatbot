@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scaler Persona Chat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <main class="app">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Scaler x InterviewBit</p>
+          <h1>Persona Chat Studio</h1>
+          <p class="subtitle">
+            Talk to three distinct mentors. Switch persona to reset the
+            conversation and explore a new perspective.
+          </p>
+        </div>
+        <div class="persona-card">
+          <div class="persona-header">
+            <span class="label">Active persona</span>
+            <span id="activePersona" class="active-persona">Anshuman Singh</span>
+          </div>
+          <div class="persona-switcher" role="tablist" aria-label="Persona switcher">
+            <button class="persona-btn is-active" data-persona="anshuman" role="tab">
+              Anshuman Singh
+            </button>
+            <button class="persona-btn" data-persona="abhimanyu" role="tab">
+              Abhimanyu Saxena
+            </button>
+            <button class="persona-btn" data-persona="kshitij" role="tab">
+              Kshitij Mishra
+            </button>
+          </div>
+          <div class="persona-summary" id="personaSummary"></div>
+          <div class="chips" id="suggestionChips"></div>
+        </div>
+      </header>
+
+      <section class="chat">
+        <div class="chat-window" id="chatWindow">
+          <div class="empty-state" id="emptyState">
+            Start with a suggestion or ask your own question.
+          </div>
+        </div>
+        <form class="chat-input" id="chatForm">
+          <input
+            type="text"
+            id="chatInput"
+            placeholder="Ask a question..."
+            autocomplete="off"
+          />
+          <button type="submit" id="sendBtn">Send</button>
+        </form>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
