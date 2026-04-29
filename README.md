@@ -37,6 +37,7 @@ A working persona-based chatbot featuring three Scaler and InterviewBit personal
 
 ## Deployment
 - Deploy to Render, Railway, or Vercel (Node server). Ensure environment variables are set in the hosting provider.
+- For Vercel, this repo includes a serverless API route at `/api/chat`, so you only need to set `CEREBRAS_API_KEY` in the Vercel Project Settings.
 - Update this README with your deployed URL.
 
 ## Screenshots
