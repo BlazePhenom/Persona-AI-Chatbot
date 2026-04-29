@@ -32,7 +32,7 @@ A working persona-based chatbot featuring three Scaler and InterviewBit personal
 
 ## Environment Variables
 - `CEREBRAS_API_KEY`: API key for Cerebras
-- `CEREBRAS_MODEL`: Optional model name (default `llama3.1-70b`)
+- `CEREBRAS_MODEL`: Optional model name. If omitted or unavailable, the server falls back to a supported public model.
 - `PORT`: Optional server port
 
 ## Deployment

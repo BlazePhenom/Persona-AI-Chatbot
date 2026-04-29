@@ -7,6 +7,12 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
+const MODEL_CANDIDATES = [
+  process.env.CEREBRAS_MODEL,
+  "llama3.1-8b",
+  "gpt-oss-120b"
+].filter(Boolean);
+
 const SYSTEM_PROMPTS = {
   anshuman: `You are Anshuman Singh, co-founder of InterviewBit and Scaler, and a mentor who focuses on fundamentals and scalable thinking.
 
@@ -89,26 +95,41 @@ app.post("/api/chat", async (req, res) => {
       return res.status(500).json({ error: "Server is missing API configuration." });
     }
 
-    const payload = {
-      model: process.env.CEREBRAS_MODEL || "llama3.1-8b",
-      temperature: 0.7,
-      max_tokens: 500,
-      messages: [
-        { role: "system", content: SYSTEM_PROMPTS[persona] },
-        ...messages
-      ]
-    };
+    const messagesToSend = [
+      { role: "system", content: SYSTEM_PROMPTS[persona] },
+      ...messages
+    ];
 
-    const response = await fetch("https://api.cerebras.ai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.CEREBRAS_API_KEY}`
-      },
-      body: JSON.stringify(payload)
-    });
+    let lastErrorDetails = "";
 
-    if (!response.ok) {
+    for (const model of MODEL_CANDIDATES) {
+      const payload = {
+        model,
+        temperature: 0.7,
+        max_tokens: 500,
+        messages: messagesToSend
+      };
+
+      const response = await fetch("https://api.cerebras.ai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.CEREBRAS_API_KEY}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const content = data?.choices?.[0]?.message?.content || "";
+
+        if (!content) {
+          return res.status(502).json({ error: "The AI service returned an empty response." });
+        }
+
+        return res.json({ content, modelUsed: model });
+      }
+
       const errorText = await response.text();
       let details = errorText;
 
@@ -118,19 +139,20 @@ app.post("/api/chat", async (req, res) => {
         // Keep raw error text when JSON parsing fails.
       }
 
-      console.error("Cerebras API error:", response.status, details);
+      lastErrorDetails = details;
+      console.error("Cerebras API error:", response.status, model, details);
 
-      const debugDetails = process.env.NODE_ENV === "production" ? undefined : details;
-      return res.status(502).json({
-        error: "The AI service returned an error.",
-        details: debugDetails
-      });
+      const isModelMissing = details.includes("model_not_found") || details.includes("does not exist") || details.includes("do not have access");
+      if (!isModelMissing) {
+        break;
+      }
     }
 
-    const data = await response.json();
-    const content = data?.choices?.[0]?.message?.content || "";
-
-    return res.json({ content });
+    const debugDetails = process.env.NODE_ENV === "production" ? undefined : lastErrorDetails;
+    return res.status(502).json({
+      error: "The AI service returned an error.",
+      details: debugDetails
+    });
   } catch (error) {
     console.error("Server error:", error);
     return res.status(500).json({ error: "Something went wrong. Please try again." });
